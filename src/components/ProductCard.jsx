@@ -1,9 +1,10 @@
-function ProductCard({ name, price, image }) {
+function ProductCard({ product }) {
   return (
-    <div>
-      <img src={image} alt={name} />
-      <h2>{name}</h2>
-      <p>₹{price}</p>
+    <div className="max-w-sm p-4 space-y-1 rounded-xl shadow-md bg-orange-300">
+      <img className="w-full h-64 object-cover" src={product.image} alt={product.name} />
+      <h2 className="text-xl font-semibold text-amber-800">{product.name}</h2>
+      <p className="font-bold text-cyan-900">₹{product.price}</p>
+      <p>{product.category}</p>
     </div>
   );
 }
