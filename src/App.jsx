@@ -28,6 +28,29 @@ const products = [
 
   },
 
+  {
+    id: 4,
+    name: "Pooja Dhoop",
+    price: 159,
+    image:"/images/pooja_dhoop.jpg",
+    category: "pooja-essentials",
+  },
+
+  {
+    id: 5,
+    name : "Ganesha Idol",
+    price: 599,
+    image: "/images/ganesh_idol.jpg",
+    category: "idols"
+  },
+
+  {
+    id: 6,
+    name:"Pooja kit",
+    price: 399,
+    image: "/images/pooja_kit.jpg",
+    category: "kits",
+  }
 ];
 
 function App() {
@@ -42,23 +65,57 @@ function App() {
 });
 
   return (
-    <div>
-      <div>
-        <button onClick={() => setSelectCategory("all")}>
+    <div className="min-h-screen">
+      
+      <header className="flex items-center gap-4 px-6 py-5 bg-orange-500 text-white shadow-md">
+        <button className="text-2xl">
+        </button>
+
+        <h1 className="text-2xl font-bold">
+          Aaradhya Pooja Store
+        </h1>
+      </header>
+
+      <div className="flex gap-3 px-6 py-6">
+        <button 
+          onClick={() => setSelectCategory("all")}
+          className={selectCategory === "all" ? "bg-orange-500 text-white" : ""}
+        >
           All
         </button>
 
-        <button onClick={() => setSelectCategory("utensils")}>
+        <button 
+          onClick={() => setSelectCategory("utensils")}
+          className={selectCategory === "utensils" ? "bg-orange-500 text-white" : ""}
+        >
           Utensils
         </button>
 
-        <button onClick={() => setSelectCategory("Pooja Essentials")}>
+        <button 
+          onClick={() => setSelectCategory("pooja-essentials")}
+          className={selectCategory === "pooja-essentials" ? "bg-orange-500 text-white" : ""}
+        >
           Pooja Essentials
         </button>
+
+        <button 
+          onClick={() => setSelectCategory("idols")}
+          className={selectCategory === "idols" ? "bg-orange-500 text-white" : ""}
+        >
+          Idols/Statues
+        </button>
+
+        <button 
+          onClick={() => setSelectCategory("kits")}
+          className={selectCategory === "kits" ? "bg-orange-500 text-white" : ""}
+        >
+          Pooja Kits
+        </button>
+
       </div>
 
-      <div className="p-10 grid grid-cols-1 md:grid-cols-2 gap-5">
-        {products.map((product) => (
+      <div className="p-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {filteredProducts.map((product) => (
           <ProductCard
             key={product.id}
             product={product}
