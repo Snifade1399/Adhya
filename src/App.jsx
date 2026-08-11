@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+import Cart from "./components/Cart";
 import { useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import ProductCard from "./components/ProductCard";
@@ -25,6 +27,11 @@ function Home() {
         <h1 className="text-2xl font-bold">
           Aaradhya Pooja Store
         </h1>
+            
+      <Link to="/cart" className="text-2xl font-bold">
+        Cart
+      </Link>
+      
       </header>
 
       <div className="flex gap-3 px-6 py-6">
@@ -78,12 +85,63 @@ function Home() {
 }
 
 function App() {
-  return(
+  const [cart, setCart] = useState([]);
+
+  console.log(cart);
+
+  function addToCart(productId) {
+    const existingItem = cart.find(
+      (item) => item.productId === productId
+    );
+
+    if (!existingItem) {
+      setCart([
+        ...cart,
+        { productId: productId, quantity: 1 }
+      ]);
+    } else {
+      setCart(
+        cart.map((item) => {
+          if (item.productId === productId) {
+            return {
+              ...item,
+              quantity: item.quantity + 1,
+            };
+          }
+
+          return item;
+        })
+      );
+    }
+  }
+function increaseQuantity(productId) {
+  console.log("increaseQuantity called:", productId);
+  setCart(
+    cart.map((item) => {
+      if (item.productId === productId) {
+        return {
+          ...item,
+          quantity: item.quantity + 1,
+        };
+      }
+
+      return item;
+    })
+  );
+}
+  return (
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route path="products/:id" element={<ProductPage />} />
+      <Route
+        path="/products/:id"
+        element={<ProductPage addToCart={addToCart} />}
+      />
+      <Route 
+        path="/cart" 
+        element={<Cart cart={cart} increaseQuantity={increaseQuantity} />} 
+      />
     </Routes>
   );
-
 }
+
 export default App;

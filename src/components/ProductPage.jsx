@@ -1,6 +1,6 @@
 import { products } from "../data/Products";
 import { useParams } from "react-router-dom";
-function ProductPage() {
+function ProductPage({addToCart}) {
 
   const { id } = useParams();
 
@@ -13,6 +13,9 @@ function ProductPage() {
       <h1>{product.name}</h1>
       <p>{product.price}</p>
       <img src={product.image} alt={product.name} />
+      <button onClick={() => addToCart(product.id)}>
+        Add to Cart
+      </button>
     </div>
   );
 }
