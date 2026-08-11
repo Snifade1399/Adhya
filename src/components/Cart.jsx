@@ -1,6 +1,10 @@
 import { products } from "../data/Products";
 
-function Cart({ cart, increaseQuantity }) {
+function Cart({ 
+  cart, 
+  increaseQuantity,
+  decreaseQuantity,
+}) {
   const cartProducts = cart.map((item) => {
     const product = products.find(
       (product) => product.id === item.productId
@@ -11,6 +15,11 @@ function Cart({ cart, increaseQuantity }) {
       quantity: item.quantity,
     };
   });
+
+    const total = cartProducts.reduce((sum, product) => {
+    return sum + product.price * product.quantity;
+
+  }, 0);
 
   return (
     <div>
@@ -30,11 +39,17 @@ function Cart({ cart, increaseQuantity }) {
           
           <p>Quantity: {product.quantity}</p>
           
+          <button onClick={() => decreaseQuantity(product.id)}>
+            -
+          </button>
+          
           <button onClick={() => increaseQuantity(product.id)}>
             +
           </button>
         </div>
       ))}
+
+      <h2> Total: ₹{total}</h2>
     </div>
   );
 }

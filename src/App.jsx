@@ -129,6 +129,23 @@ function increaseQuantity(productId) {
     })
   );
 }
+
+function decreaseQuantity(productId) {
+  setCart(
+    cart
+      .map((item) => {
+        if (item.productId === productId) {
+          return {
+            ...item,
+            quantity: item.quantity - 1,
+          };
+        }
+
+        return item;
+      })
+      .filter((item) => item.quantity > 0)
+  );
+}
   return (
     <Routes>
       <Route path="/" element={<Home />} />
@@ -138,7 +155,12 @@ function increaseQuantity(productId) {
       />
       <Route 
         path="/cart" 
-        element={<Cart cart={cart} increaseQuantity={increaseQuantity} />} 
+        element={
+          <Cart 
+            cart={cart} 
+            increaseQuantity={increaseQuantity} 
+            decreaseQuantity={decreaseQuantity}
+          />} 
       />
     </Routes>
   );
