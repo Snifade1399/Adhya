@@ -50,7 +50,23 @@ const products = [
     price: 399,
     image: "/images/pooja_kit.jpg",
     category: "kits",
-  }
+  },
+
+  {
+    id: 7,
+    name: "Shiv Idol",
+    price: 499,
+    image: "/images/shiv_idol.jpg",
+    category: "idols",
+  },
+
+  {
+    id: 8,
+    name: "Pooja Til/Sesame oil",
+    price: 299,
+    image: "/images/til_oil.jpg",
+    category: "pooja-essentials",
+  },
 ];
 
 function App() {
