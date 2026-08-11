@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Routes, Route } from "react-router-dom";
 import ProductCard from "./components/ProductCard";
 
 const products = [
@@ -69,7 +70,7 @@ const products = [
   },
 ];
 
-function App() {
+function Home() {
   const [selectCategory, setSelectCategory] = useState("all");
 
   const filteredProducts = products.filter((product) => {
@@ -140,5 +141,14 @@ function App() {
       </div>
     </div>
   );
+}
+
+function App() {
+  return(
+    <Routes>
+      <Route path="/" element={<Home />} />
+    </Routes>
+  );
+
 }
 export default App;
