@@ -6,7 +6,11 @@ import ProductCard from "./components/ProductCard";
 import ProductPage from "./components/ProductPage";
 import { products } from "./data/Products"; 
 
-function Home() {
+function Home( {cart} ) {
+  // Calculate the total number of individual items in the cart
+  const cartItemCount = cart.reduce((sum,item) => {
+    return sum+ item.quantity;
+  }, 0);
   const [selectCategory, setSelectCategory] = useState("all");
 
   const filteredProducts = products.filter((product) => {
@@ -20,7 +24,7 @@ function Home() {
   return (
     <div className="min-h-screen">
       
-      <header className="flex items-center gap-4 px-6 py-5 bg-orange-500 text-white shadow-md">
+      <header className="flex items-center justify-between gap-4 px-6 py-5 bg-orange-500 text-white shadow-md">
         <button className="text-2xl">
         </button>
 
@@ -28,8 +32,10 @@ function Home() {
           Aaradhya Pooja Store
         </h1>
             
-      <Link to="/cart" className="text-2xl font-bold">
-        Cart
+      <Link 
+      to="/cart" 
+      className="px-4 py-2 bg-white text-orange-500 rounded-lg font-bold hover:bg-orange-100">
+        Cart ({cartItemCount})
       </Link>
       
       </header>
@@ -146,9 +152,16 @@ function decreaseQuantity(productId) {
       .filter((item) => item.quantity > 0)
   );
 }
+
+function removeFromCart(productId) {
+  setCart(
+    cart.filter((item) => item.productId !== productId)
+  );
+}
+
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
+      <Route path="/" element={<Home cart={cart} />} />
       <Route
         path="/products/:id"
         element={<ProductPage addToCart={addToCart} />}
@@ -160,6 +173,7 @@ function decreaseQuantity(productId) {
             cart={cart} 
             increaseQuantity={increaseQuantity} 
             decreaseQuantity={decreaseQuantity}
+            removeFromCart={removeFromCart}
           />} 
       />
     </Routes>
