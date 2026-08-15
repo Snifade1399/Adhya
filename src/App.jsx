@@ -1,6 +1,9 @@
 import { Link, Routes, Route } from "react-router-dom";
 import { useEffect, useState } from "react";
 
+import Checkout from "./pages/checkout";
+import OrderSuccess from "./pages/OrderSuccess";
+
 import Reveal from "./components/Reveal";
 import Cart from "./components/Cart";
 import ProductCard from "./components/ProductCard";
@@ -93,11 +96,10 @@ function Home() {
       {/* Hero */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center px-6 lg:px-16 py-20">
 
-        {/* Hero content */}
         <div className="animate-fade-up">
 
           <p className="text-sm tracking-[0.3em] uppercase text-[var(--muted)]">
-            ĀDHYA
+            ĀDHYA By SNIFADE
           </p>
 
           <h2 className="mt-6 text-6xl lg:text-8xl font-semibold tracking-tight leading-none">
@@ -109,6 +111,7 @@ function Home() {
           <p className="mt-8 max-w-md text-lg text-[var(--muted)] leading-relaxed">
             Thoughtfully chosen objects for everyday rituals,
             meaningful spaces, and moments that matter.
+            Made by the Infamous SNIFADE
           </p>
 
           <Link
@@ -144,7 +147,6 @@ function Home() {
 
           <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-12 items-center">
 
-            {/* Decorative element */}
             <div className="hidden lg:flex justify-center">
 
               <div className="w-32 h-32 rounded-full border border-[var(--border)] flex items-center justify-center">
@@ -158,7 +160,6 @@ function Home() {
             </div>
 
 
-            {/* Philosophy text */}
             <div className="lg:col-span-2 max-w-3xl">
 
               <p className="text-sm uppercase tracking-[0.25em] text-[var(--muted)]">
@@ -298,7 +299,52 @@ function Home() {
 
 
 function App() {
-  const [cart, setCart] = useState([]);
+
+  /*
+   * Restore cart from localStorage.
+   */
+  const [cart, setCart] = useState(() => {
+
+    try {
+
+      const savedCart = localStorage.getItem("adhya-cart");
+
+      if (!savedCart) {
+        return [];
+      }
+
+      return JSON.parse(savedCart);
+
+    } catch (error) {
+
+      console.error("Could not restore cart:", error);
+
+      return [];
+
+    }
+
+  });
+
+
+  /*
+   * Save cart whenever it changes.
+   */
+  useEffect(() => {
+
+    try {
+
+      localStorage.setItem(
+        "adhya-cart",
+        JSON.stringify(cart)
+      );
+
+    } catch (error) {
+
+      console.error("Could not save cart:", error);
+
+    }
+
+  }, [cart]);
 
 
   const cartItemCount = cart.reduce((sum, item) => {
@@ -307,48 +353,28 @@ function App() {
 
 
   function addToCart(productId) {
-    const existingItem = cart.find(
-      (item) => item.productId === productId
-    );
 
+    setCart((currentCart) => {
 
-    if (!existingItem) {
-
-      setCart([
-        ...cart,
-        {
-          productId: productId,
-          quantity: 1,
-        },
-      ]);
-
-    } else {
-
-      setCart(
-        cart.map((item) => {
-
-          if (item.productId === productId) {
-
-            return {
-              ...item,
-              quantity: item.quantity + 1,
-            };
-
-          }
-
-          return item;
-
-        })
+      const existingItem = currentCart.find(
+        (item) => item.productId === productId
       );
 
-    }
-  }
+
+      if (!existingItem) {
+
+        return [
+          ...currentCart,
+          {
+            productId: productId,
+            quantity: 1,
+          },
+        ];
+
+      }
 
 
-  function increaseQuantity(productId) {
-
-    setCart(
-      cart.map((item) => {
+      return currentCart.map((item) => {
 
         if (item.productId === productId) {
 
@@ -361,16 +387,42 @@ function App() {
 
         return item;
 
-      })
-    );
+      });
+
+    });
+
+  }
+
+
+  function increaseQuantity(productId) {
+
+    setCart((currentCart) => {
+
+      return currentCart.map((item) => {
+
+        if (item.productId === productId) {
+
+          return {
+            ...item,
+            quantity: item.quantity + 1,
+          };
+
+        }
+
+        return item;
+
+      });
+
+    });
 
   }
 
 
   function decreaseQuantity(productId) {
 
-    setCart(
-      cart
+    setCart((currentCart) => {
+
+      return currentCart
         .map((item) => {
 
           if (item.productId === productId) {
@@ -385,18 +437,31 @@ function App() {
           return item;
 
         })
-        .filter((item) => item.quantity > 0)
-    );
+        .filter((item) => item.quantity > 0);
+
+    });
 
   }
 
 
   function removeFromCart(productId) {
 
-    setCart(
-      cart.filter((item) => item.productId !== productId)
-    );
+    setCart((currentCart) => {
 
+      return currentCart.filter(
+        (item) => item.productId !== productId
+      );
+
+    });
+
+  }
+
+
+  /*
+   * Completely empty the cart.
+   */
+  function clearCart() {
+    setCart([]);
   }
 
 
@@ -439,10 +504,28 @@ function App() {
           }
         />
 
+
+        {/* Checkout */}
+        <Route
+          path="/checkout"
+          element={
+            <Checkout
+              cart={cart}
+              clearCart={clearCart}
+            />
+          }
+        />
+
+
+        {/* Order success */}
+        <Route
+          path="/order-success"
+          element={<OrderSuccess />}
+        />
+
       </Routes>
 
 
-      {/* Global footer */}
       <Footer />
 
     </>

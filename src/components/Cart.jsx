@@ -383,16 +383,12 @@ function Cart({
 
 
               {/* Checkout */}
-              <button
-                type="button"
-                className="w-full mt-8 px-6 py-4 rounded-full bg-[var(--text)] text-white text-sm font-medium hover:bg-[var(--accent)] transition-colors"
-                onClick={() => {
-                  alert("Checkout will be available soon.");
-                }}
+              <Link
+                to="/checkout"
+                className="block w-full mt-8 px-6 py-4 rounded-full bg-[var(--text)] text-white text-sm font-medium text-center hover:bg-[var(--accent)] transition-colors"
               >
                 Proceed to Checkout
-              </button>
-
+              </Link>
 
               <p className="mt-4 text-xs text-center text-[var(--muted)] leading-relaxed">
                 Secure checkout and payment options will be available soon.
