@@ -2,48 +2,50 @@ import { Link } from "react-router-dom";
 
 function Navbar({ cartItemCount }) {
   return (
-    <header className="flex items-center justify-between px-8 py-6 border-b border-[var(--border)]">
-      
-      {/* Logo */}
-      <Link
-        to="/"
-        className="text-2xl font-semibold tracking-tight"
-      >
-        ĀDHYA
-      </Link>
+    <header className="border-b border-[var(--border)]">
+      <div className="max-w-7xl mx-auto flex items-center justify-between px-6 lg:px-10 py-6">
 
-      {/* Navigation */}
-      <nav className="hidden md:flex items-center gap-8 text-sm">
-        <Link
-          to="/#products"
-          className="hover:text-[var(--accent)] transition-colors"
-        >
-          Shop
-        </Link>
-
-        <Link
-          to="/#products"
-          className="hover:text-[var(--accent)] transition-colors"
-        >
-          Collections
-        </Link>
-
+        {/* Logo */}
         <Link
           to="/"
-          className="hover:text-[var(--accent)] transition-colors"
+          className="text-xl font-semibold tracking-[0.08em]"
         >
-          About
+          ĀDHYA
         </Link>
-      </nav>
 
-      {/* Cart */}
-      <Link
-        to="/cart"
-        className="text-sm font-medium hover:text-[var(--accent)] transition-colors"
-      >
-        Bag ({cartItemCount})
-      </Link>
+        {/* Navigation */}
+        <nav className="hidden md:flex items-center gap-8 text-sm">
+          <Link
+            to="/#products"
+            className="text-[var(--muted)] hover:text-[var(--text)] transition-colors"
+          >
+            Shop
+          </Link>
 
+          <Link
+            to="/#products"
+            className="text-[var(--muted)] hover:text-[var(--text)] transition-colors"
+          >
+            Collections
+          </Link>
+
+          <Link
+            to="/"
+            className="text-[var(--muted)] hover:text-[var(--text)] transition-colors"
+          >
+            About
+          </Link>
+        </nav>
+
+        {/* Cart */}
+        <Link
+          to="/cart"
+          className="text-sm font-medium hover:text-[var(--accent)] transition-colors"
+        >
+          Bag ({cartItemCount})
+        </Link>
+
+      </div>
     </header>
   );
 }
