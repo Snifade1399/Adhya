@@ -1,5 +1,6 @@
-import { products } from "../data/Products";
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from "../lib/supabaseClient";
 
 function Cart({
   cart,
@@ -7,26 +8,129 @@ function Cart({
   decreaseQuantity,
   removeFromCart,
 }) {
-  const cartProducts = cart
-    .map((item) => {
-      const product = products.find(
-        (product) => product.id === item.productId
-      );
+  const [cartProducts, setCartProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-      if (!product) {
-        return null;
+
+  /*
+   * Fetch the products currently in the cart
+   * from Supabase.
+   */
+  useEffect(() => {
+    async function fetchCartProducts() {
+      if (cart.length === 0) {
+        setCartProducts([]);
+        setLoading(false);
+        return;
       }
 
-      return {
-        ...product,
-        quantity: item.quantity,
-      };
-    })
-    .filter(Boolean);
+      setLoading(true);
+      setError(null);
 
+      const productIds = cart.map((item) => item.productId);
+
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .in("id", productIds);
+
+      if (error) {
+        console.error("Error fetching cart products:", error);
+        setError(error.message);
+        setCartProducts([]);
+        setLoading(false);
+        return;
+      }
+
+      /*
+       * Combine Supabase product information
+       * with the quantity stored in the cart.
+       */
+      const combinedProducts = cart
+        .map((item) => {
+          const product = data.find(
+            (product) => product.id === item.productId
+          );
+
+          if (!product) {
+            return null;
+          }
+
+          return {
+            ...product,
+            quantity: item.quantity,
+          };
+        })
+        .filter(Boolean);
+
+      setCartProducts(combinedProducts);
+      setLoading(false);
+    }
+
+    fetchCartProducts();
+  }, [cart]);
+
+
+  /*
+   * Calculate subtotal
+   */
   const subtotal = cartProducts.reduce((sum, product) => {
     return sum + product.price * product.quantity;
   }, 0);
+
+
+  /*
+   * Loading state
+   */
+  if (loading) {
+    return (
+      <main className="min-h-[70vh] flex items-center justify-center px-6">
+
+        <p className="text-sm text-[var(--muted)]">
+          Loading your bag...
+        </p>
+
+      </main>
+    );
+  }
+
+
+  /*
+   * Error state
+   */
+  if (error) {
+    return (
+      <main className="min-h-[70vh] flex items-center justify-center px-6">
+
+        <div className="max-w-md text-center">
+
+          <p className="text-sm uppercase tracking-[0.3em] text-[var(--muted)]">
+            YOUR BAG
+          </p>
+
+          <h1 className="mt-5 text-4xl font-semibold tracking-tight">
+            Something went wrong.
+          </h1>
+
+          <p className="mt-5 text-sm text-[var(--muted)] leading-relaxed">
+            We couldn't load the products in your bag.
+            Please try refreshing the page.
+          </p>
+
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-8 px-7 py-4 rounded-full bg-[var(--text)] text-white text-sm font-medium hover:bg-[var(--accent)] transition-colors"
+          >
+            Refresh
+          </button>
+
+        </div>
+
+      </main>
+    );
+  }
+
 
   /*
    * Empty cart
@@ -63,6 +167,7 @@ function Cart({
       </main>
     );
   }
+
 
   /*
    * Cart with products
@@ -110,6 +215,7 @@ function Cart({
                   to={`/products/${product.id}`}
                   className="shrink-0"
                 >
+
                   <div className="w-full sm:w-36 aspect-[4/5] overflow-hidden rounded-xl bg-[#e9e3d8]">
 
                     <img
@@ -119,6 +225,7 @@ function Cart({
                     />
 
                   </div>
+
                 </Link>
 
 
@@ -230,6 +337,7 @@ function Cart({
               <div className="mt-8 space-y-4 text-sm">
 
                 <div className="flex justify-between gap-4">
+
                   <span className="text-[var(--muted)]">
                     Subtotal
                   </span>
@@ -237,9 +345,12 @@ function Cart({
                   <span>
                     ₹{subtotal}
                   </span>
+
                 </div>
 
+
                 <div className="flex justify-between gap-4">
+
                   <span className="text-[var(--muted)]">
                     Shipping
                   </span>
@@ -247,6 +358,7 @@ function Cart({
                   <span>
                     Calculated at checkout
                   </span>
+
                 </div>
 
               </div>

@@ -1,15 +1,44 @@
 import { Link, Routes, Route } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
 import Reveal from "./components/Reveal";
 import Cart from "./components/Cart";
 import ProductCard from "./components/ProductCard";
 import ProductPage from "./components/ProductPage";
 import Navbar from "./components/Navbar";
-import { products } from "./data/Products";
+import Footer from "./components/Footer";
+
+import { supabase } from "./lib/supabaseClient";
 
 
 function Home() {
   const [selectCategory, setSelectCategory] = useState("all");
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+
+  useEffect(() => {
+    async function fetchProducts() {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .order("id");
+
+      if (error) {
+        console.error("Error fetching products:", error);
+        setError(error.message);
+        setLoading(false);
+        return;
+      }
+
+      setProducts(data);
+      setLoading(false);
+    }
+
+    fetchProducts();
+  }, []);
+
 
   const filteredProducts = products.filter((product) => {
     if (selectCategory === "all") {
@@ -18,6 +47,45 @@ function Home() {
 
     return product.category === selectCategory;
   });
+
+
+  if (loading) {
+    return (
+      <main className="min-h-[70vh] flex items-center justify-center">
+
+        <p className="text-sm text-[var(--muted)]">
+          Loading collection...
+        </p>
+
+      </main>
+    );
+  }
+
+
+  if (error) {
+    return (
+      <main className="min-h-[70vh] flex items-center justify-center px-6">
+
+        <div className="text-center">
+
+          <p className="text-sm uppercase tracking-[0.25em] text-[var(--muted)]">
+            Collection unavailable
+          </p>
+
+          <h1 className="mt-4 text-3xl font-semibold">
+            Something went wrong.
+          </h1>
+
+          <p className="mt-4 text-sm text-[var(--muted)]">
+            {error}
+          </p>
+
+        </div>
+
+      </main>
+    );
+  }
+
 
   return (
     <div className="min-h-screen">
@@ -52,64 +120,68 @@ function Home() {
 
         </div>
 
+
         {/* Hero image */}
-        <div className="h-[500px] overflow-hidden rounded-2xl animate-fade-in">
+        {products.length > 0 && (
+          <div className="h-[500px] overflow-hidden rounded-2xl animate-fade-in">
 
-          <img
-            src={products[0].image}
-            alt={products[0].name}
-            className="w-full h-full object-cover"
-          />
+            <img
+              src={products[0].image}
+              alt={products[0].name}
+              className="w-full h-full object-cover"
+            />
 
-        </div>
+          </div>
+        )}
 
       </section>
 
 
       {/* Philosophy */}
-<Reveal>
+      <Reveal>
 
-  <section className="px-6 lg:px-16 py-32 border-t border-[var(--border)]">
+        <section className="px-6 lg:px-16 py-32 border-t border-[var(--border)]">
 
-    <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-12 items-center">
+          <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-12 items-center">
 
-      {/* Decorative element */}
-      <div className="hidden lg:flex justify-center">
+            {/* Decorative element */}
+            <div className="hidden lg:flex justify-center">
 
-        <div className="w-32 h-32 rounded-full border border-[var(--border)] flex items-center justify-center">
+              <div className="w-32 h-32 rounded-full border border-[var(--border)] flex items-center justify-center">
 
-          <span className="text-4xl text-[var(--accent)]">
-            ॐ
-          </span>
+                <span className="text-4xl text-[var(--accent)]">
+                  ॐ
+                </span>
 
-        </div>
+              </div>
 
-      </div>
+            </div>
 
-      {/* Philosophy text */}
-      <div className="lg:col-span-2 max-w-3xl">
 
-        <p className="text-sm uppercase tracking-[0.25em] text-[var(--muted)]">
-          The ĀDHYA philosophy
-        </p>
+            {/* Philosophy text */}
+            <div className="lg:col-span-2 max-w-3xl">
 
-        <h2 className="mt-6 text-4xl lg:text-6xl font-semibold tracking-tight leading-tight">
-          Ritual, reimagined.
-        </h2>
+              <p className="text-sm uppercase tracking-[0.25em] text-[var(--muted)]">
+                The ĀDHYA philosophy
+              </p>
 
-        <p className="mt-6 text-lg lg:text-xl text-[var(--muted)] leading-relaxed">
-          Objects that belong in both sacred spaces and everyday homes.
-          Thoughtfully chosen, quietly beautiful, and made to become
-          part of the way you live.
-        </p>
+              <h2 className="mt-6 text-4xl lg:text-6xl font-semibold tracking-tight leading-tight">
+                Ritual, reimagined.
+              </h2>
 
-      </div>
+              <p className="mt-6 text-lg lg:text-xl text-[var(--muted)] leading-relaxed">
+                Objects that belong in both sacred spaces and everyday homes.
+                Thoughtfully chosen, quietly beautiful, and made to become
+                part of the way you live.
+              </p>
 
-    </div>
+            </div>
 
-  </section>
+          </div>
 
-</Reveal>
+        </section>
+
+      </Reveal>
 
 
       {/* Collection */}
@@ -136,7 +208,7 @@ function Home() {
             </div>
 
             <p className="max-w-sm text-sm leading-relaxed text-[var(--muted)]">
-              Objects selected for ritual, home, and everyday moments.
+              Objects selected for everyday moments.
               Simple forms, thoughtful details.
             </p>
 
@@ -144,7 +216,8 @@ function Home() {
 
 
           {/* Category filters */}
-         <div className="flex gap-6 border-b border-[var(--border)] mb-10 overflow-x-auto">
+          <div className="flex gap-6 border-b border-[var(--border)] mb-10 overflow-x-auto">
+
             <button
               onClick={() => setSelectCategory("all")}
               className={`pb-2 text-sm transition-colors ${
@@ -158,50 +231,38 @@ function Home() {
 
 
             <button
-              onClick={() => setSelectCategory("utensils")}
+              onClick={() => setSelectCategory("clothing")}
               className={`pb-2 text-sm transition-colors ${
-                selectCategory === "utensils"
+                selectCategory === "clothing"
                   ? "text-[var(--text)] border-b border-[var(--text)]"
                   : "text-[var(--muted)] hover:text-[var(--text)]"
               }`}
             >
-              Utensils
+              Clothing
             </button>
 
 
             <button
-              onClick={() => setSelectCategory("pooja-essentials")}
+              onClick={() => setSelectCategory("footwear")}
               className={`pb-2 text-sm transition-colors ${
-                selectCategory === "pooja-essentials"
+                selectCategory === "footwear"
                   ? "text-[var(--text)] border-b border-[var(--text)]"
                   : "text-[var(--muted)] hover:text-[var(--text)]"
               }`}
             >
-              Pooja Essentials
+              Footwear
             </button>
 
 
             <button
-              onClick={() => setSelectCategory("idols")}
+              onClick={() => setSelectCategory("accessories")}
               className={`pb-2 text-sm transition-colors ${
-                selectCategory === "idols"
+                selectCategory === "accessories"
                   ? "text-[var(--text)] border-b border-[var(--text)]"
                   : "text-[var(--muted)] hover:text-[var(--text)]"
               }`}
             >
-              Idols / Statues
-            </button>
-
-
-            <button
-              onClick={() => setSelectCategory("kits")}
-              className={`pb-2 text-sm transition-colors ${
-                selectCategory === "kits"
-                  ? "text-[var(--text)] border-b border-[var(--text)]"
-                  : "text-[var(--muted)] hover:text-[var(--text)]"
-              }`}
-            >
-              Pooja Kits
+              Accessories
             </button>
 
           </div>
@@ -210,100 +271,22 @@ function Home() {
           {/* Product grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-12">
 
-  {filteredProducts.map((product, index) => (
-    <Reveal
-      key={product.id}
-      delay={index * 60}
-    >
-      <ProductCard
-        product={product}
-      />
-    </Reveal>
-  ))}
+            {filteredProducts.map((product, index) => (
 
-</div>
+              <Reveal
+                key={product.id}
+                delay={index * 60}
+              >
 
+                <ProductCard
+                  product={product}
+                />
 
-          {/* Footer */}
-          <footer className="border-t border-[var(--border)] px-6 lg:px-16 py-16">
+              </Reveal>
 
-            <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
+            ))}
 
-              {/* Brand */}
-              <div>
-
-                <h2 className="text-2xl font-semibold tracking-tight">
-                  ĀDHYA
-                </h2>
-
-                <p className="mt-4 max-w-xs text-sm text-[var(--muted)] leading-relaxed">
-                  Thoughtfully chosen objects for ritual, home, and everyday living.
-                </p>
-
-              </div>
-
-
-              {/* Navigation */}
-              <div>
-
-                <p className="text-sm uppercase tracking-[0.2em] text-[var(--muted)]">
-                  Explore
-                </p>
-
-                <div className="mt-4 flex flex-col gap-3 text-sm">
-
-                  <Link
-                    to="/#products"
-                    className="hover:text-[var(--accent)] transition-colors"
-                  >
-                    Collection
-                  </Link>
-
-                  <Link
-                    to="/"
-                    className="hover:text-[var(--accent)] transition-colors"
-                  >
-                    About
-                  </Link>
-
-                  <Link
-                    to="/cart"
-                    className="hover:text-[var(--accent)] transition-colors"
-                  >
-                    Bag
-                  </Link>
-
-                </div>
-
-              </div>
-
-
-              {/* Philosophy */}
-              <div>
-
-                <p className="text-sm uppercase tracking-[0.2em] text-[var(--muted)]">
-                  ĀDHYA
-                </p>
-
-                <p className="mt-4 text-sm text-[var(--muted)] leading-relaxed">
-                  Ritual, reimagined.
-                </p>
-
-              </div>
-
-            </div>
-
-
-            {/* Copyright */}
-            <div className="max-w-6xl mx-auto mt-16 pt-6 border-t border-[var(--border)]">
-
-              <p className="text-xs text-[var(--muted)]">
-                © 2026 ĀDHYA. All rights reserved.
-              </p>
-
-            </div>
-
-          </footer>
+          </div>
 
         </div>
 
@@ -317,6 +300,7 @@ function Home() {
 function App() {
   const [cart, setCart] = useState([]);
 
+
   const cartItemCount = cart.reduce((sum, item) => {
     return sum + item.quantity;
   }, 0);
@@ -327,7 +311,9 @@ function App() {
       (item) => item.productId === productId
     );
 
+
     if (!existingItem) {
+
       setCart([
         ...cart,
         {
@@ -335,75 +321,101 @@ function App() {
           quantity: 1,
         },
       ]);
+
     } else {
+
       setCart(
         cart.map((item) => {
+
           if (item.productId === productId) {
+
             return {
               ...item,
               quantity: item.quantity + 1,
             };
+
           }
 
           return item;
+
         })
       );
+
     }
   }
 
 
   function increaseQuantity(productId) {
+
     setCart(
       cart.map((item) => {
+
         if (item.productId === productId) {
+
           return {
             ...item,
             quantity: item.quantity + 1,
           };
+
         }
 
         return item;
+
       })
     );
+
   }
 
 
   function decreaseQuantity(productId) {
+
     setCart(
       cart
         .map((item) => {
+
           if (item.productId === productId) {
+
             return {
               ...item,
               quantity: item.quantity - 1,
             };
+
           }
 
           return item;
+
         })
         .filter((item) => item.quantity > 0)
     );
+
   }
 
 
   function removeFromCart(productId) {
+
     setCart(
       cart.filter((item) => item.productId !== productId)
     );
+
   }
 
 
   return (
     <>
+
       <Navbar cartItemCount={cartItemCount} />
+
 
       <Routes>
 
+        {/* Home */}
         <Route
           path="/"
           element={<Home />}
         />
 
+
+        {/* Product page */}
         <Route
           path="/products/:id"
           element={
@@ -413,6 +425,8 @@ function App() {
           }
         />
 
+
+        {/* Cart */}
         <Route
           path="/cart"
           element={
@@ -426,6 +440,11 @@ function App() {
         />
 
       </Routes>
+
+
+      {/* Global footer */}
+      <Footer />
+
     </>
   );
 }
