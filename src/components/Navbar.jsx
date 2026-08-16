@@ -1,9 +1,11 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import useCart from "../hooks/useCart";
+import useAuth from "../hooks/useAuth";
 
 function Navbar() {
   const { cartItemCount } = useCart();
+  const { user, loading: authLoading, signOut } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuClosing, setMenuClosing] = useState(false);
 
@@ -19,6 +21,21 @@ function Navbar() {
       if (destination) {
         navigate(destination);
       }
+    }, 250);
+  }
+
+  async function handleLogout() {
+    await signOut();
+    navigate("/");
+  }
+
+  function mobileLogout() {
+    setMenuClosing(true);
+
+    setTimeout(() => {
+      setMenuOpen(false);
+      setMenuClosing(false);
+      handleLogout();
     }, 250);
   }
 
@@ -70,6 +87,39 @@ function Navbar() {
           </Link>
 
         </nav>
+
+
+        {/* Auth */}
+        <div className="hidden md:flex items-center gap-6 text-sm">
+
+          {!authLoading && (
+            user ? (
+              <>
+                <Link
+                  to="/account"
+                  className="text-[var(--muted)] hover:text-[var(--text)] transition-colors"
+                >
+                  Account
+                </Link>
+
+                <button
+                  onClick={handleLogout}
+                  className="text-[var(--muted)] hover:text-[var(--text)] transition-colors"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <Link
+                to="/login"
+                className="text-[var(--muted)] hover:text-[var(--text)] transition-colors"
+              >
+                Login
+              </Link>
+            )
+          )}
+
+        </div>
 
 
         {/* Cart */}
@@ -132,6 +182,33 @@ function Navbar() {
             >
               Bag ({cartItemCount})
             </button>
+
+            {!authLoading && (
+              user ? (
+                <>
+                  <button
+                    onClick={() => closeMenu("/account")}
+                    className="text-left text-[var(--muted)] hover:text-[var(--text)] transition-colors"
+                  >
+                    Account
+                  </button>
+
+                  <button
+                    onClick={mobileLogout}
+                    className="text-left text-[var(--muted)] hover:text-[var(--text)] transition-colors"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => closeMenu("/login")}
+                  className="text-left text-[var(--muted)] hover:text-[var(--text)] transition-colors"
+                >
+                  Login
+                </button>
+              )
+            )}
 
           </nav>
 
