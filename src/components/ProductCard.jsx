@@ -1,17 +1,19 @@
 import { Link } from "react-router-dom";
+import ProductImage from "./ProductImage";
 
 function ProductCard({ product }) {
   return (
     <Link
-      to={`/products/${product.id}`}
+      to={product.slug ? `/products/${product.slug}` : `/products/${product.id}`}
       className="group block"
     >
       {/* Image */}
       <div className="aspect-[4/5] overflow-hidden rounded-2xl bg-[#e9e3d8]">
-        <img
+        <ProductImage
           src={product.image}
           alt={product.name}
           className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+          loading="lazy"
         />
       </div>
 

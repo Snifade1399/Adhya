@@ -1,0 +1,24 @@
+# Supabase project configuration.
+# REVIEW ONLY — NOT DEPLOYED.
+#
+# Declares the deployment contract for the create-order Edge Function.
+# Deploy with: supabase functions deploy create-order
+# (requires `supabase login` and a linked project).
+#
+# verify_jwt = false: the function is public (the storefront has no user
+# sessions and calls it with only the publishable key). It is the only entry
+# point for order creation after migration 0003 revokes anon EXECUTE on the
+# RPC. The function validates every request and uses the service-role key
+# internally; that key is never exposed to the browser.
+#
+# CORS is a browser-origin control only. Configure it for production:
+#   supabase secrets set ALLOWED_ORIGIN=https://your-store.example
+#   supabase secrets set APP_ENV=production
+# Production fails closed: without ALLOWED_ORIGIN, browser-origin requests are
+# rejected (403). The "*" fallback exists ONLY when APP_ENV=development
+# (local development). Never set APP_ENV=development in production.
+
+project_id = "ujxfvzqbgeubttewqtac"
+
+[functions.create-order]
+verify_jwt = false

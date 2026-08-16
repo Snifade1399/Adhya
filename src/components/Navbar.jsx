@@ -1,7 +1,9 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import useCart from "../hooks/useCart";
 
-function Navbar({ cartItemCount }) {
+function Navbar() {
+  const { cartItemCount } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuClosing, setMenuClosing] = useState(false);
 
@@ -61,7 +63,7 @@ function Navbar({ cartItemCount }) {
           </Link>
 
           <Link
-            to="/"
+            to="/#about"
             className="text-[var(--muted)] hover:text-[var(--text)] transition-colors"
           >
             About
@@ -118,7 +120,7 @@ function Navbar({ cartItemCount }) {
             </button>
 
             <button
-              onClick={() => closeMenu("/")}
+              onClick={() => closeMenu("/#about")}
               className="text-left text-[var(--muted)] hover:text-[var(--text)] transition-colors"
             >
               About

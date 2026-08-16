@@ -5,6 +5,11 @@ function OrderSuccess() {
 
   const location = useLocation();
 
+  /*
+   * Order data currently travels via router state set by the checkout page.
+   * This is the integration point that will later fetch the order from the
+   * server (e.g. a fetch-order Edge Function) instead of trusting client state.
+   */
   const orderId = location.state?.orderId;
   const total = location.state?.total;
   const customerName = location.state?.customerName;

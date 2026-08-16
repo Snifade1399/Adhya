@@ -1,11 +1,89 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import ProductImage from "../components/ProductImage";
 import { supabase } from "../lib/supabaseClient";
+import useCart from "../hooks/useCart";
+import useCartProducts from "../hooks/useCartProducts";
 
 
-function Checkout({ cart, clearCart }) {
+const CHECKOUT_ID_KEY = "adhya-checkout-id";
+
+
+/*
+ * Returns the idempotency key for the current checkout session, generating a
+ * UUID once and persisting it in sessionStorage so a page refresh or retry
+ * reuses the same key. Removed only after a successful order is created.
+ * Session-scoped on purpose (sessionStorage, not localStorage): checkout
+ * idempotency should never outlive the browsing session.
+ */
+function getOrCreateCheckoutId() {
+
+  try {
+
+    const existing = sessionStorage.getItem(CHECKOUT_ID_KEY);
+
+    if (existing) {
+      return existing;
+    }
+
+  } catch (error) {
+
+    console.error("Could not read checkout id:", error);
+
+  }
+
+
+  let id = "";
+
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    id = crypto.randomUUID();
+  } else {
+    id = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
+      /[xy]/g,
+      (character) => {
+        const random = (Math.random() * 16) | 0;
+        const value = character === "x" ? random : (random & 0x3) | 0x8;
+        return value.toString(16);
+      }
+    );
+  }
+
+
+  try {
+
+    sessionStorage.setItem(CHECKOUT_ID_KEY, id);
+
+  } catch (error) {
+
+    console.error("Could not store checkout id:", error);
+
+  }
+
+
+  return id;
+}
+
+
+function clearCheckoutId() {
+
+  try {
+
+    sessionStorage.removeItem(CHECKOUT_ID_KEY);
+
+  } catch (error) {
+
+    console.error("Could not clear checkout id:", error);
+
+  }
+
+}
+
+
+function Checkout() {
 
   const navigate = useNavigate();
+  const { cart, clearCart } = useCart();
+  const { cartProducts, loading, error } = useCartProducts();
 
 
   const [formData, setFormData] = useState({
@@ -16,88 +94,16 @@ function Checkout({ cart, clearCart }) {
   });
 
 
-  const [cartProducts, setCartProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [submitError, setSubmitError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
 
   /*
-   * Fetch products belonging to the cart.
+   * Idempotency key for this checkout session: generated once, persisted in
+   * sessionStorage so a refresh or retry reuses it, cleared only after the
+   * order is successfully created. Never regenerated per render.
    */
-  useEffect(() => {
-
-    async function fetchCartProducts() {
-
-      if (cart.length === 0) {
-        setCartProducts([]);
-        setLoading(false);
-        return;
-      }
-
-
-      setLoading(true);
-      setError(null);
-
-
-      const productIds = cart.map(
-        (item) => item.productId
-      );
-
-
-      const { data, error } = await supabase
-        .from("products")
-        .select("*")
-        .in("id", productIds);
-
-
-      if (error) {
-
-        console.error(
-          "Error fetching checkout products:",
-          error
-        );
-
-        setError(error.message);
-        setCartProducts([]);
-        setLoading(false);
-
-        return;
-      }
-
-
-      const combinedProducts = cart
-        .map((item) => {
-
-          const product = data.find(
-            (product) => product.id === item.productId
-          );
-
-
-          if (!product) {
-            return null;
-          }
-
-
-          return {
-            ...product,
-            quantity: item.quantity,
-          };
-
-        })
-        .filter(Boolean);
-
-
-      setCartProducts(combinedProducts);
-      setLoading(false);
-
-    }
-
-
-    fetchCartProducts();
-
-  }, [cart]);
+  const [checkoutId] = useState(getOrCreateCheckoutId);
 
 
   const subtotal = cartProducts.reduce(
@@ -139,19 +145,22 @@ function Checkout({ cart, clearCart }) {
     setSubmitError(null);
 
 
-    const { data: orderId, error } =
-      await supabase.rpc(
-        "create_order",
+    const { data, error } =
+      await supabase.functions.invoke(
+        "create-order",
         {
-          p_customer_name: formData.name,
-          p_customer_email: formData.email,
-          p_customer_phone: formData.phone,
-          p_shipping_address: formData.address,
+          body: {
+            checkoutId: checkoutId,
+            customerName: formData.name,
+            customerEmail: formData.email,
+            customerPhone: formData.phone,
+            shippingAddress: formData.address,
 
-          p_items: cart.map((item) => ({
-            product_id: item.productId,
-            quantity: item.quantity,
-          })),
+            items: cart.map((item) => ({
+              product_id: item.productId,
+              quantity: item.quantity,
+            })),
+          },
         }
       );
 
@@ -163,8 +172,38 @@ function Checkout({ cart, clearCart }) {
         error
       );
 
-      setSubmitError(
+      let message =
         error.message ||
+        "Unable to create your order.";
+
+      if (error.context) {
+
+        try {
+
+          const context = await error.context.json();
+
+          if (context?.error) {
+            message = context.error;
+          }
+
+        } catch {
+
+          /* keep the fallback message */
+
+        }
+
+      }
+
+      setSubmitError(message);
+      setSubmitting(false);
+
+      return;
+    }
+
+
+    if (!data?.orderId) {
+
+      setSubmitError(
         "Unable to create your order."
       );
 
@@ -181,11 +220,12 @@ function Checkout({ cart, clearCart }) {
      * to the confirmation page.
      */
     clearCart();
+    clearCheckoutId();
 
 
     navigate("/order-success", {
       state: {
-        orderId: orderId,
+        orderId: data.orderId,
         total: total,
         customerName: formData.name,
       },
@@ -472,10 +512,11 @@ function Checkout({ cart, clearCart }) {
 
                     <div className="w-16 h-20 shrink-0 overflow-hidden rounded-lg bg-[#e9e3d8]">
 
-                      <img
+                      <ProductImage
                         src={product.image}
                         alt={product.name}
                         className="w-full h-full object-cover"
+                        loading="lazy"
                       />
 
                     </div>

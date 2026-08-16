@@ -1,40 +1,23 @@
 import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Reveal from "./Reveal";
-import { supabase } from "../lib/supabaseClient";
+import ProductImage from "./ProductImage";
+import useProduct from "../hooks/useProduct";
+import useCart from "../hooks/useCart";
 
-function ProductPage({ addToCart }) {
+function ProductPage() {
   const { id } = useParams();
-
-  const [product, setProduct] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { product, loading, error } = useProduct(id);
+  const { addToCart } = useCart();
   const [added, setAdded] = useState(false);
 
 
+  /*
+   * Reset the "Added to Bag" feedback when
+   * navigating from one product to another.
+   */
   useEffect(() => {
-    async function fetchProduct() {
-      setLoading(true);
-      setError(null);
-
-      const { data, error } = await supabase
-        .from("products")
-        .select("*")
-        .eq("id", id)
-        .single();
-
-      if (error) {
-        console.error("Error fetching product:", error);
-        setError(error.message);
-        setLoading(false);
-        return;
-      }
-
-      setProduct(data);
-      setLoading(false);
-    }
-
-    fetchProduct();
+    setAdded(false);
   }, [id]);
 
 
@@ -103,10 +86,11 @@ function ProductPage({ addToCart }) {
 
           <div className="group aspect-[4/5] overflow-hidden rounded-2xl bg-[#e9e3d8]">
 
-            <img
+            <ProductImage
               src={product.image}
               alt={product.name}
               className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+              loading="eager"
             />
 
           </div>
@@ -150,11 +134,11 @@ function ProductPage({ addToCart }) {
 
 
             {/* Description */}
-            <p className="mt-8 max-w-lg text-[var(--muted)] leading-relaxed">
-              Thoughtfully selected for everyday living.
-              Simple forms, quality materials, and timeless design
-              made to become part of your everyday life.
-            </p>
+            {product.description && (
+              <p className="mt-8 max-w-lg text-[var(--muted)] leading-relaxed whitespace-pre-line">
+                {product.description}
+              </p>
+            )}
 
 
             {/* Add to cart */}
