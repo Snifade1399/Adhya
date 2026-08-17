@@ -80,7 +80,7 @@ function OrderSuccess() {
 
 
         <p className="mt-6 max-w-lg mx-auto text-[var(--muted)] leading-relaxed">
-          Your order has been successfully created.
+          Your payment has been confirmed and your order has been placed.
           We'll take care of the rest.
         </p>
 
@@ -137,10 +137,6 @@ function OrderSuccess() {
 
         </div>
 
-
-        <p className="mt-8 text-xs text-[var(--muted)]">
-          Payment processing will be added soon.
-        </p>
 
       </div>
 

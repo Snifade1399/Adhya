@@ -328,7 +328,7 @@ function Cart() {
               </Link>
 
               <p className="mt-4 text-xs text-center text-[var(--muted)] leading-relaxed">
-                Secure checkout and payment options will be available soon.
+                Secure checkout with Razorpay.
               </p>
 
             </div>

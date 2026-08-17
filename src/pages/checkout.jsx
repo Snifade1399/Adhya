@@ -7,12 +7,50 @@ import useCartProducts from "../hooks/useCartProducts";
 
 
 const CHECKOUT_ID_KEY = "adhya-checkout-id";
+const RAZORPAY_CHECKOUT_URL = "https://checkout.razorpay.com/v1/checkout.js";
+
+
+/* Razorpay provides Checkout as a browser script, rather than an npm package. */
+function loadRazorpayCheckout() {
+
+  if (window.Razorpay) {
+    return Promise.resolve();
+  }
+
+
+  return new Promise((resolve, reject) => {
+
+    const existingScript = document.querySelector(
+      `script[src="${RAZORPAY_CHECKOUT_URL}"]`
+    );
+
+    if (existingScript) {
+      existingScript.addEventListener("load", resolve, { once: true });
+      existingScript.addEventListener(
+        "error",
+        () => reject(new Error("Unable to load the payment window.")),
+        { once: true }
+      );
+      return;
+    }
+
+
+    const script = document.createElement("script");
+    script.src = RAZORPAY_CHECKOUT_URL;
+    script.async = true;
+    script.onload = resolve;
+    script.onerror = () => reject(new Error("Unable to load the payment window."));
+    document.body.appendChild(script);
+
+  });
+
+}
 
 
 /*
  * Returns the idempotency key for the current checkout session, generating a
  * UUID once and persisting it in sessionStorage so a page refresh or retry
- * reuses the same key. Removed only after a successful order is created.
+ * reuses the same key. Removed only after payment is confirmed.
  * Session-scoped on purpose (sessionStorage, not localStorage): checkout
  * idempotency should never outlive the browsing session.
  */
@@ -100,8 +138,8 @@ function Checkout() {
 
   /*
    * Idempotency key for this checkout session: generated once, persisted in
-   * sessionStorage so a refresh or retry reuses it, cleared only after the
-   * order is successfully created. Never regenerated per render.
+   * sessionStorage so a refresh or retry reuses it, cleared only after payment
+   * is confirmed. Never regenerated per render.
    */
   const [checkoutId] = useState(getOrCreateCheckoutId);
 
@@ -201,7 +239,13 @@ function Checkout() {
     }
 
 
-    if (!data?.orderId) {
+    if (
+      !data?.orderId ||
+      !data?.razorpayOrderId ||
+      !data?.amount ||
+      !data?.currency ||
+      !data?.keyId
+    ) {
 
       setSubmitError(
         "Unable to create your order."
@@ -213,23 +257,112 @@ function Checkout() {
     }
 
 
-    /*
-     * Order successfully created.
-     *
-     * Clear the local cart before navigating
-     * to the confirmation page.
-     */
-    clearCart();
-    clearCheckoutId();
+    try {
+
+      await loadRazorpayCheckout();
+
+      let paymentSubmitted = false;
+
+      const razorpay = new window.Razorpay({
+        key: data.keyId,
+        amount: data.amount,
+        currency: data.currency,
+        name: "ĀDHYA",
+        description: "Order payment",
+        order_id: data.razorpayOrderId,
+        prefill: {
+          name: formData.name,
+          email: formData.email,
+          contact: formData.phone,
+        },
+        notes: {
+          order_id: data.orderId,
+        },
+        theme: {
+          color: "#1f1b16",
+        },
+        handler: async (payment) => {
+
+          paymentSubmitted = true;
+          setSubmitError(null);
+
+          try {
+
+            const { data: verification, error: verificationError } =
+              await supabase.functions.invoke("verify-payment", {
+                body: {
+                  orderId: data.orderId,
+                  razorpayOrderId: payment.razorpay_order_id,
+                  razorpayPaymentId: payment.razorpay_payment_id,
+                  razorpaySignature: payment.razorpay_signature,
+                },
+              });
+
+            if (verificationError || !verification?.success) {
+              let message =
+                verificationError?.message ||
+                verification?.error ||
+                "We could not confirm your payment. Please contact us with your payment ID.";
+
+              if (verificationError?.context) {
+                try {
+                  const context = await verificationError.context.json();
+                  message = context?.error || message;
+                } catch {
+                  /* keep the fallback message */
+                }
+              }
+
+              throw new Error(message);
+            }
 
 
-    navigate("/order-success", {
-      state: {
-        orderId: data.orderId,
-        total: total,
-        customerName: formData.name,
-      },
-    });
+            clearCart();
+            clearCheckoutId();
+
+            navigate("/order-success", {
+              state: {
+                orderId: data.orderId,
+                total: data.amount / 100,
+                customerName: formData.name,
+              },
+            });
+
+          } catch (error) {
+
+            console.error("Payment verification failed:", error);
+            setSubmitError(
+              error instanceof Error
+                ? error.message
+                : "We could not confirm your payment. Please contact us with your payment ID."
+            );
+            setSubmitting(false);
+
+          }
+
+        },
+        modal: {
+          ondismiss: () => {
+            if (!paymentSubmitted) {
+              setSubmitting(false);
+            }
+          },
+        },
+      });
+
+      razorpay.open();
+
+    } catch (error) {
+
+      console.error("Could not open Razorpay Checkout:", error);
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "Unable to open the payment window. Please try again."
+      );
+      setSubmitting(false);
+
+    }
 
   }
 
@@ -602,8 +735,8 @@ function Checkout() {
                 className="w-full mt-8 px-6 py-4 rounded-full bg-[var(--text)] text-white text-sm font-medium hover:bg-[var(--accent)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submitting
-                  ? "Creating Order..."
-                  : "Place Order"}
+                  ? "Preparing Payment..."
+                  : "Pay Securely"}
               </button>
 
 
