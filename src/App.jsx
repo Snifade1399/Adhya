@@ -8,6 +8,7 @@ import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Account from "./pages/Account";
+import Policies from "./pages/Policies";
 
 import Cart from "./components/Cart";
 import ProductPage from "./components/ProductPage";
@@ -61,6 +62,12 @@ function App() {
           path="/order-success"
           element={<OrderSuccess />}
         />
+
+        <Route path="/contact" element={<Policies policy="contact" />} />
+        <Route path="/shipping" element={<Policies policy="shipping" />} />
+        <Route path="/returns" element={<Policies policy="returns" />} />
+        <Route path="/privacy" element={<Policies policy="privacy" />} />
+        <Route path="/terms" element={<Policies policy="terms" />} />
 
 
         {/* Auth */}
