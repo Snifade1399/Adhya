@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 
 import Home from "./pages/Home";
 import Checkout from "./pages/checkout";
@@ -21,12 +21,15 @@ import AdminDashboard from "./pages/AdminDashboard";
 
 
 function App() {
+  const location = useLocation();
+  const isAdmin = location.pathname.startsWith("/admin");
+
   return (
     <>
 
       <ScrollManager />
 
-      <Navbar />
+      {!isAdmin && <Navbar />}
 
 
       <Routes>
@@ -115,7 +118,7 @@ function App() {
       </Routes>
 
 
-      <Footer />
+      {!isAdmin && <Footer />}
 
     </>
   );
