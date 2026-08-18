@@ -235,24 +235,24 @@ function ProductForm({ open, product, onSubmit, onCancel }) {
             />
           </div>
 
-          {/* Image URL */}
+          {/* Image */}
           <div>
             <label className="block text-[11px] uppercase tracking-[0.12em] text-[var(--muted)] mb-1.5">
-              Image URL
+              Image
             </label>
             <input
-              type="url"
+              type="text"
               name="image"
               value={form.image}
               onChange={handleChange}
-              placeholder="https://..."
+              placeholder="/images/photo.jpg or https://..."
               className="w-full px-3 py-2 text-sm border border-[var(--border)] rounded-lg bg-[var(--background)] focus:outline-none focus:border-[var(--text)]/30 transition-colors"
             />
             {errors.image && (
               <p className="mt-1 text-xs text-red-600">{errors.image}</p>
             )}
             <p className="mt-1 text-[11px] text-[var(--muted)]">
-              Paste a direct image URL. Supabase Storage upload coming soon.
+              Local path or direct image URL.
             </p>
           </div>
 
