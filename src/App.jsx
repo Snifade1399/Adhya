@@ -8,6 +8,7 @@ import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Account from "./pages/Account";
+import Policies from "./pages/Policies";
 
 import Cart from "./components/Cart";
 import ProductPage from "./components/ProductPage";
@@ -15,6 +16,8 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ScrollManager from "./components/ScrollManager";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
+import AdminDashboard from "./pages/AdminDashboard";
 
 
 function App() {
@@ -62,6 +65,13 @@ function App() {
           element={<OrderSuccess />}
         />
 
+        {/* Store policies */}
+        <Route path="/contact" element={<Policies policy="contact" />} />
+        <Route path="/shipping" element={<Policies policy="shipping" />} />
+        <Route path="/returns" element={<Policies policy="returns" />} />
+        <Route path="/privacy" element={<Policies policy="privacy" />} />
+        <Route path="/terms" element={<Policies policy="terms" />} />
+
 
         {/* Auth */}
         <Route
@@ -90,6 +100,15 @@ function App() {
             <ProtectedRoute>
               <Account />
             </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <AdminDashboard />
+            </AdminRoute>
           }
         />
 

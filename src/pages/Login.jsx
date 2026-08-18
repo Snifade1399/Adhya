@@ -20,8 +20,10 @@ function Login() {
   /*
    * Where to go after a successful sign-in:
    * the page the user originally wanted, if any.
+   * Captured once on mount so it survives location changes
+   * triggered by navigate() in handleSubmit.
    */
-  const from = location.state?.from?.pathname || "/";
+  const [from] = useState(location.state?.from?.pathname || "/");
 
 
   /*
@@ -78,15 +80,20 @@ function Login() {
             Forgot your password?
           </Link>
 
-          <p className="mt-4 text-sm text-[var(--muted)]">
-            New to ĀDHYA?{" "}
+          <div className="mt-6">
+
+            <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">
+              New to ĀDHYA?
+            </p>
+
             <Link
               to="/signup"
-              className="font-medium text-[var(--text)] hover:text-[var(--accent)] transition-colors"
+              className="mt-3 inline-block w-full px-6 py-4 rounded-full border border-[var(--text)] text-sm font-medium hover:bg-[var(--text)] hover:text-white transition-colors"
             >
               Create an account
             </Link>
-          </p>
+
+          </div>
         </>
       }
     >

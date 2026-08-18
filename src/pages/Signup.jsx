@@ -108,15 +108,20 @@ function Signup() {
       title="Create your account."
       description="Join ĀDHYA for a more personal experience."
       footer={
-        <p className="text-sm text-[var(--muted)]">
-          Already have an account?{" "}
+        <div>
+
+          <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">
+            Already have an account?
+          </p>
+
           <Link
             to="/login"
-            className="font-medium text-[var(--text)] hover:text-[var(--accent)] transition-colors"
+            className="mt-3 inline-block w-full px-6 py-4 rounded-full border border-[var(--text)] text-sm font-medium hover:bg-[var(--text)] hover:text-white transition-colors"
           >
             Sign in
           </Link>
-        </p>
+
+        </div>
       }
     >
       <form
