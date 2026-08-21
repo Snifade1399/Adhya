@@ -3,6 +3,13 @@ function webpSource(src) {
     return null;
   }
 
+  // Only local Vite asset paths have a committed .webp twin to optimize to.
+  // Remote files (e.g. Supabase Storage product images) exist exactly as
+  // uploaded and must not be rewritten.
+  if (/^https?:\/\//i.test(src)) {
+    return null;
+  }
+
   return src.replace(/\.(jpe?g|png)$/i, ".webp");
 }
 
